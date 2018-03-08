@@ -43,9 +43,29 @@ void loop() {
 
   getInput();                 //check for button press and change scR, scL, and qNum values accordingly
 
-  updateDisplay(45123678);    //testing something
+  digitalWrite(latchPin, LOW);
+  push(glyphs[12]);
+  push(glyphs[12]);
+  push(glyphs[12]);
+  push(glyphs[12]);
+  push(glyphs[12]);
+  push(glyphs[12]);
+  push(glyphs[12]);
+  push(glyphs[12]);
+  digitalWrite(latchPin, HIGH);
+  delay(75);
 
-  delay(1000);
+  digitalWrite(latchPin, LOW);
+  push(glyphs[5]);
+  push(B11101110);
+  push(glyphs[1]);
+  push(glyphs[12]);
+  push(glyphs[12]);
+  push(glyphs[12]);
+  push(B00011100);
+  push(B10011110);
+  digitalWrite(latchPin, HIGH);
+  delay(75);
 
 }
 
@@ -53,27 +73,6 @@ void loop() {
 void push(byte x){
   shiftOut(dataPin, clockPin, LSBFIRST, x);
 }
-
-
-long prepDisplay(long l, long q, long r){
-  long output = (q*1000000)+(l*10000)+(r*10);
-  return output;
-}
-
-
-void updateDisplay(long x){
-  digitalWrite (latchPin, LOW);
-  push(glyphs[x%10]);
-  push(glyphs[(x/10)%10]);
-  push(glyphs[(x/100)%10]);
-  push(glyphs[(x/1000)%10]);
-  push(glyphs[(x/10000)%10]);
-  push(glyphs[(x/100000)%10]);
-  push(glyphs[(x/1000000)%10]);
-  push(glyphs[(x/10000000)%10]);
-  digitalWrite (latchPin, HIGH);
-}
-
 
 void displayGlyph(int x){ 
   digitalWrite (latchPin, LOW);
