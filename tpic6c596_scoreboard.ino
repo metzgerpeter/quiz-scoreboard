@@ -1,13 +1,17 @@
-byte glyphs[13] = {0xFC, 0x60, 0xDA, 0xF2, 0x66, 0xB6, 0xBE, 0xE0, 0xFE, 0xF6, 0x02, 0x62, 0x00};
-                 // 0:0, 1:1,  2:2,  3:3,  4:4,  5:5,  6:6,  7:7,  8:8,  9:9,  10:-, 11:-1,12:(blank)
+static byte glyphs[13] = {0xFC, 0x60, 0xDA, 0xF2, 0x66, 0xB6, 0xBE, 0xE0, 0xFE, 0xF6, 0x02, 0x62, 0x00};
+                        // 0:0, 1:1,  2:2,  3:3,  4:4,  5:5,  6:6,  7:7,  8:8,  9:9,  10:-, 11:-1,12:(blank)
 
 int latchPin = 2;             //connected to TPIC6C596 pin 10 [RCK]
 int clockPin = 3;             //connected to TPIC6C596 pin 15 [SRCK]
 int dataPin = 4;              //connected to TPIC6C596 pin 2  [SER IN]
 
-int scR = 5;                  //score counter right
-int scL = 5;                  //score counter left
-int qNum = 1;                 //question number
+int scR = 0;                  //score counter right (initialize to zero)
+int scL = 0;                  //score counter left (initialize to zero)
+int qNum = 1;                 //question number (initialize to #1)
+
+byte dispR[3];                //holds display bytes for right score
+byte dispL[3];                //holds display bytes for left score
+byte dispQ[2];                //holds display bytes for question number
 
 boolean errR = false;         //holds error state for right score
 boolean errL = false;         //holds error state for left
@@ -36,36 +40,27 @@ void setup() {
   pinMode(iL, INPUT);         //increment left score
   pinMode(dL, INPUT);         //decrement left score
 
+  dispL[0] = glyphs[12];      //digit 0 blank
+  dispL[1] = glyphs[12];      //digit 1 blank
+  dispL[2] = glyphs[0];       //digit 3 zero
+
+  dispR[0] = glyphs[12];      //digit 0 blank
+  dispR[1] = glyphs[12];      //digit 1 blank
+  dispR[2] = glyphs[0];       //digit 3 zero
+
+  dispQ[0] = glyphs[12];      //digit 0 blank
+  dispQ[1] = glyphs[1];       //digit 1 one
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-
+  
   getInput();                 //check for button press and change scR, scL, and qNum values accordingly
+  
+  errChk();                   //sets error flags correctly
 
-  digitalWrite(latchPin, LOW);
-  push(glyphs[12]);
-  push(glyphs[12]);
-  push(glyphs[12]);
-  push(glyphs[12]);
-  push(glyphs[12]);
-  push(glyphs[12]);
-  push(glyphs[12]);
-  push(glyphs[12]);
-  digitalWrite(latchPin, HIGH);
-  delay(75);
-
-  digitalWrite(latchPin, LOW);
-  push(glyphs[5]);
-  push(B11101110);
-  push(glyphs[1]);
-  push(glyphs[12]);
-  push(glyphs[12]);
-  push(glyphs[12]);
-  push(B00011100);
-  push(B10011110);
-  digitalWrite(latchPin, HIGH);
-  delay(75);
+  errSet();                   //sets -- or --- display for error states
+  
+  updateDisplay();            //pushes updated values to display
 
 }
 
@@ -74,28 +69,17 @@ void push(byte x){
   shiftOut(dataPin, clockPin, LSBFIRST, x);
 }
 
-void displayGlyph(int x){ 
-  digitalWrite (latchPin, LOW);
-  shiftOut (dataPin, clockPin, LSBFIRST, glyphs[x]);
-  digitalWrite (latchPin, HIGH);
-}
-
-
-void displayByte(byte x){
-  digitalWrite (latchPin, LOW);
-  shiftOut (dataPin, clockPin, LSBFIRST, x);
-  digitalWrite (latchPin, HIGH); 
-  delay(75);
-}
-
-
-void errMsg(){                //this needs to be updated to accommodate expanded display
-  for (int i = 1; i < 64; i=i*2){
-    digitalWrite (latchPin, LOW);
-    shiftOut (dataPin, clockPin, MSBFIRST, i);
-    digitalWrite (latchPin, HIGH);
-    delay(75);
-  }
+void updateDisplay(){
+  digitalWrite(latchPin, LOW);
+  push(dispR[2]);
+  push(dispR[1]);
+  push(dispR[0]);
+  push(dispL[2]);
+  push(dispL[1]);
+  push(dispL[0]);
+  push(dispQ[1]);
+  push(dispQ[0]);
+  digitalWrite(latchPin, HIGH);
 }
 
 void errChk(){                //check to see if any values are out of range
@@ -121,8 +105,37 @@ void errChk(){                //check to see if any values are out of range
   }
 }
 
+void errSet(){                //sets error-state values to display -- or ---
+  if(errR == true){
+    dispR[0]=glyphs[10];
+    dispR[1]=glyphs[10];
+    dispR[2]=glyphs[10];
+  }
+
+  if(errL == true){
+    dispL[0]=glyphs[10];
+    dispL[1]=glyphs[10];
+    dispL[2]=glyphs[10];
+  }
+
+  if(errQ == true){
+    dispQ[0]=glyphs[10];
+    dispQ[1]=glyphs[10];
+  }
+}
+
+void setR(){
+  if(-1 < scR && scR < 10){
+    //working here currently
+  }
+}
+
+void setOutput(){
+  
+}
+
 void getInput(){
-  boolean buttonPress = false;
+  boolean buttonPress = false;//sets to false every time before checking
   
   if(digitalRead(iR)==HIGH){
     scR++;
