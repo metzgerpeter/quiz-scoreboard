@@ -37,42 +37,11 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-  updateDisplay(prepDisplay(scL, qNum, scR));
-  
-  if(digitalRead(iR)==HIGH){
-    scR++;
-    delay(250);
-  }
-
-   if(digitalRead(dR)==HIGH){
-    scR--;
-    delay(250);
-  }
-
-    if(digitalRead(iQ)==HIGH){
-    qNum++;
-    delay(250);
-  }
-
-   if(digitalRead(dQ)==HIGH){
-    qNum--;
-    delay(250);
-  }
-
-  if(digitalRead(iL)==HIGH){
-    scL++;
-    delay(250);
-  }
-
-   if(digitalRead(dL)==HIGH){
-    scL--;
-    delay(250);
-  }
-
+  getInput();                 //check for button press and change values accordingly
 
   updateDisplay(prepDisplay(scL, qNum, scR));
 
-  if (scR > 99){
+  if (scR > 52){              //theoretical max score for a quiz is 520
     errMsg();
     scR=0;
   }
@@ -82,6 +51,45 @@ void loop() {
   }
 
 }
+
+void getInput(){
+  boolean buttonPress = false;
+  
+  if(digitalRead(iR)==HIGH){
+    scR++;
+    buttonPress = true;
+  }
+
+  if(digitalRead(dR)==HIGH){
+    scR--;
+    buttonPress = true;
+  }
+
+  if(digitalRead(iQ)==HIGH){
+    qNum++;
+    buttonPress = true;
+  }
+
+  if(digitalRead(dQ)==HIGH){
+    qNum--;
+    buttonPress = true;
+  }
+
+  if(digitalRead(iL)==HIGH){
+    scL++;
+    buttonPress = true;
+  }
+
+  if(digitalRead(dL)==HIGH){
+    scL--;
+    buttonPress = true;
+  }
+
+  if(buttonPress == true){
+    delay(200);               //delay to avoid multi-trigger from bounce
+  }
+}
+
 
 void push(byte x){
   shiftOut(dataPin, clockPin, LSBFIRST, x);
@@ -119,7 +127,7 @@ void displayByte(byte x){
 }
 
 
-void errMsg(){
+void errMsg(){                //this needs to be updated to accommodate expanded display
   for (int i = 1; i < 64; i=i*2){
     digitalWrite (latchPin, LOW);
     shiftOut (dataPin, clockPin, MSBFIRST, i);
