@@ -9,6 +9,10 @@ int scR = 5;                  //score counter right
 int scL = 5;                  //score counter left
 int qNum = 1;                 //question number
 
+boolean errR = false;         //holds error state for right score
+boolean errL = false;         //holds error state for left
+boolean errQ = false;         //holds error state for question number
+
 int iR = 7;                   //connected to right increment button
 int dR = 8;                   //connected to right decrement button
 
@@ -37,19 +41,85 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-  getInput();                 //check for button press and change values accordingly
+  getInput();                 //check for button press and change scR, scL, and qNum values accordingly
 
-  updateDisplay(prepDisplay(scL, qNum, scR));
+  updateDisplay(45123678);    //testing something
 
-  if (scR > 52){              //theoretical max score for a quiz is 520
-    errMsg();
-    scR=0;
+  delay(1000);
+
+}
+
+
+void push(byte x){
+  shiftOut(dataPin, clockPin, LSBFIRST, x);
+}
+
+
+long prepDisplay(long l, long q, long r){
+  long output = (q*1000000)+(l*10000)+(r*10);
+  return output;
+}
+
+
+void updateDisplay(long x){
+  digitalWrite (latchPin, LOW);
+  push(glyphs[x%10]);
+  push(glyphs[(x/10)%10]);
+  push(glyphs[(x/100)%10]);
+  push(glyphs[(x/1000)%10]);
+  push(glyphs[(x/10000)%10]);
+  push(glyphs[(x/100000)%10]);
+  push(glyphs[(x/1000000)%10]);
+  push(glyphs[(x/10000000)%10]);
+  digitalWrite (latchPin, HIGH);
+}
+
+
+void displayGlyph(int x){ 
+  digitalWrite (latchPin, LOW);
+  shiftOut (dataPin, clockPin, LSBFIRST, glyphs[x]);
+  digitalWrite (latchPin, HIGH);
+}
+
+
+void displayByte(byte x){
+  digitalWrite (latchPin, LOW);
+  shiftOut (dataPin, clockPin, LSBFIRST, x);
+  digitalWrite (latchPin, HIGH); 
+  delay(75);
+}
+
+
+void errMsg(){                //this needs to be updated to accommodate expanded display
+  for (int i = 1; i < 64; i=i*2){
+    digitalWrite (latchPin, LOW);
+    shiftOut (dataPin, clockPin, MSBFIRST, i);
+    digitalWrite (latchPin, HIGH);
+    delay(75);
   }
-  if (scR < 0){
-    errMsg();
-    scR=0;
+}
+
+void errChk(){                //check to see if any values are out of range
+  if((scR > 52) || (scR < -36)){
+    errR = true;              //bounds of possible score are -360 to 520
+  }
+  if((scR < 53) && (scR > -36)){
+    errR = false;             //reset error flag if score returns within bounds
   }
 
+  if((scL > 52) || (scL < -36)){
+    errL = true;              //bounds of possible score are -360 to 520
+  }
+  if((scL < 53) && (scL > -36)){
+    errR = false;             //reset error flag if score returns within bounds
+  }
+
+  if((qNum > 30) || (qNum < 1)){
+    errQ = true;              //bounds of possible question
+  }
+  if((qNum < 31) && (qNum > 0)){
+    errQ = false;             //reset error flag if qNum returns within bounds
+  }
 }
 
 void getInput(){
@@ -89,54 +159,6 @@ void getInput(){
     delay(200);               //delay to avoid multi-trigger from bounce
   }
 }
-
-
-void push(byte x){
-  shiftOut(dataPin, clockPin, LSBFIRST, x);
-}
-
-long prepDisplay(long l, long q, long r){
-  long output = (q*1000000)+(l*10000)+(r*10);
-  return output;
-}
-
-void updateDisplay(long x){
-  digitalWrite (latchPin, LOW);
-  push(glyphs[x%10]);
-  push(glyphs[(x/10)%10]);
-  push(glyphs[(x/100)%10]);
-  push(glyphs[(x/1000)%10]);
-  push(glyphs[(x/10000)%10]);
-  push(glyphs[(x/100000)%10]);
-  push(glyphs[(x/1000000)%10]);
-  push(glyphs[(x/10000000)%10]);
-  digitalWrite (latchPin, HIGH);
-}
-
-void displayGlyph(int x){ 
-  digitalWrite (latchPin, LOW);
-  shiftOut (dataPin, clockPin, LSBFIRST, glyphs[x]);
-  digitalWrite (latchPin, HIGH);
-}
-
-void displayByte(byte x){
-  digitalWrite (latchPin, LOW);
-  shiftOut (dataPin, clockPin, LSBFIRST, x);
-  digitalWrite (latchPin, HIGH); 
-  delay(75);
-}
-
-
-void errMsg(){                //this needs to be updated to accommodate expanded display
-  for (int i = 1; i < 64; i=i*2){
-    digitalWrite (latchPin, LOW);
-    shiftOut (dataPin, clockPin, MSBFIRST, i);
-    digitalWrite (latchPin, HIGH);
-    delay(75);
-  }
-}
-
-
 
 
   /* demo code that makes a segment chase around the outside of the digit:
