@@ -58,7 +58,7 @@ void loop() {
   
   errChk();                   //sets error flags correctly
 
-  errSet();                   //sets -- or --- display for error states
+  setOutput();                //sets output bytes correctly
   
   updateDisplay();            //pushes updated values to display
 
@@ -98,7 +98,7 @@ void errChk(){                //check to see if any values are out of range
   }
 
   if((qNum > 30) || (qNum < 1)){
-    errQ = true;              //bounds of possible question
+    errQ = true;              //bounds of possible question numbers
   }
   if((qNum < 31) && (qNum > 0)){
     errQ = false;             //reset error flag if qNum returns within bounds
@@ -125,17 +125,49 @@ void errSet(){                //sets error-state values to display -- or ---
 }
 
 void setR(){
-  if(-1 < scR && scR < 10){
-    //working here currently
+  dispR[2] = glyphs[0];         //sets third digit to zero
+  if (scR == 0){
+    dispR[1] = glyphs[12];      //blanks second digit if score returns to zero
+  }
+
+  if (scR != 0){
+    dispR[1] = glyphs[scR%10];  //sets second digit to ones place of score
+  
+    int x = (scR/10)%10;        //holds tens place of scR as potential first digit
+    switch (x){
+      case 0:
+        dispR[0] = glyphs[12];  //blanks first digit if score is below 100
+        break;
+      default:
+        dispR[0] = glyphs[x];   //sets first digit if score is 100 or higher
+        break;
+    }
+  }
+}
+
+void setQ(){
+  dispQ[1] = glyphs[qNum%10];   //sets second digit to ones place of qNum
+  
+  int x = (qNum/10)%10;         //holds tens place of scR as potential first digit
+  switch (x){
+    case 0:
+      dispQ[0] = glyphs[12];    //blanks first digit if qNum is below 10
+      break;
+    default:
+      dispQ[0] = glyphs[x];     //sets first digit if qNum is 10 or higher
+      break;
   }
 }
 
 void setOutput(){
-  
+  setR();
+  //setL();                     //will implement after setR is complete
+  setQ();
+  errSet();
 }
 
 void getInput(){
-  boolean buttonPress = false;//sets to false every time before checking
+  boolean buttonPress = false;  //sets to false every time before checking
   
   if(digitalRead(iR)==HIGH){
     scR++;
@@ -168,7 +200,7 @@ void getInput(){
   }
 
   if(buttonPress == true){
-    delay(200);               //delay to avoid multi-trigger from bounce
+    delay(200);                 //delay to avoid multi-trigger from bounce
   }
 }
 
