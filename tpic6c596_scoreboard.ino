@@ -83,10 +83,10 @@ void updateDisplay(){
 }
 
 void errChk(){                //check to see if any values are out of range
-  if((scR > 52) || (scR < -36)){
-    errR = true;              //bounds of possible score are -360 to 520
+  if((scR > 52) || (scR < -19)){
+    errR = true;              //bounds of possible score are -360 to 520, but display only goes down to -190
   }
-  if((scR < 53) && (scR > -36)){
+  if((scR < 53) && (scR > -20)){
     errR = false;             //reset error flag if score returns within bounds
   }
 
@@ -94,7 +94,7 @@ void errChk(){                //check to see if any values are out of range
     errL = true;              //bounds of possible score are -360 to 520
   }
   if((scL < 53) && (scL > -36)){
-    errR = false;             //reset error flag if score returns within bounds
+    errL = false;             //reset error flag if score returns within bounds
   }
 
   if((qNum > 30) || (qNum < 1)){
@@ -128,18 +128,25 @@ void setR(){
   dispR[2] = glyphs[0];         //sets third digit to zero
   if (scR == 0){
     dispR[1] = glyphs[12];      //blanks second digit if score returns to zero
+    dispR[0] = glyphs[12];      //blanks first digit if score returns to zero (prevents "-0")
   }
 
   if (scR != 0){
-    dispR[1] = glyphs[scR%10];  //sets second digit to ones place of score
+    dispR[1] = glyphs[abs(scR%10)];   //sets second digit to ones place of score
   
-    int x = (scR/10)%10;        //holds tens place of scR as potential first digit
+    int x = (abs(scR)/10)%10;         //holds tens place of scR as potential first digit
     switch (x){
       case 0:
-        dispR[0] = glyphs[12];  //blanks first digit if score is below 100
+        if (scR > 0)
+          dispR[0] = glyphs[12];      //blanks first digit if score is below 100
+        if (scR < 0)
+          dispR[0] = glyphs[10];      //sets first digit to - if score is below zero
         break;
       default:
-        dispR[0] = glyphs[x];   //sets first digit if score is 100 or higher
+        if (scR > 0)
+          dispR[0] = glyphs[x];       //sets first digit if score is 100 or higher
+        if (scR < 0)
+          dispR[0] = glyphs[11];      //sets first digit to -1 if score is -100 or below
         break;
     }
   }
